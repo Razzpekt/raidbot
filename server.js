@@ -86,11 +86,13 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
     }
     var channelVars = channels[channelID];
-    bot.deleteMessage(message);
     if (message.substring(0, 1) == '!') {
         var args = message.substring(1).split(' ');
         var cmd = args[0].toLowerCase();
-        
+        bot.deleteMessage({
+            channelID: channelID,
+            messageID: evt.d.id
+        });        
         switch(cmd) {
             case'log':
              console.log(channels);
@@ -306,7 +308,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             default:
                 bot.sendMessage({
                     to: channelID,
-                    message: 'I dont know this command :('
+                    message: 'I dont know the '+message+' command :('
                 })
                 break;
          }
