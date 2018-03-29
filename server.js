@@ -56,7 +56,7 @@ bot.on('ready', function (evt) {
     logger.info('Connected');
     logger.info('Logged in as: ');
     logger.info(bot.username + ' - (' + bot.id + ')');
-    const tmpChannels = JSON.parse(fs.readFileSync('channelVariables.json'));  
+    const tmpChannels = JSON.parse(fs.readFileSync(process.env.dbname + '.json'));  
     channels = _.mapValues(tmpChannels, c => new channelVariablesModel(c))
 });
 var authorizeUser = function(userId, channelID){
@@ -76,7 +76,7 @@ var authorizeUser = function(userId, channelID){
     return result;
 }
 function saveFile() {
-    fs.writeFileSync('channelVariables.json', JSON.stringify(channels));
+    fs.writeFileSync(process.env.dbname + '.json', JSON.stringify(channels));
 }
 bot.on('message', function (user, userID, channelID, message, evt) {
     // Our bot needs to know if it will execute a command
