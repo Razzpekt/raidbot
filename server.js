@@ -28,23 +28,27 @@ class channelVariablesModel  {
     }
     set botAdmins(value){
         this._botAdmins.push(value);
+        saveFile();
     }
     get guildMembers(){
         return this._guildMembers;
     }
     set guildMembers(value){
         this._guildMembers.push(value);
+        saveFile();
     }
     get joinedMembers(){
         return this._joinedMembers;
     }
     setJoinedMembers(key, value){
         this._joinedMembers[key] = value;
+        saveFile();
     }
     clearJoinedMembers(){
         for (const prop of Object.keys(this._joinedMembers)) {
             delete this._joinedMembers[prop];
-          }
+        }
+        saveFile();
     }
 };
 
@@ -54,20 +58,7 @@ bot.on('ready', function (evt) {
     logger.info(bot.username + ' - (' + bot.id + ')');
     const tmpChannels = JSON.parse(fs.readFileSync('channelVariables.json'));  
     channels = _.mapValues(tmpChannels, c => new channelVariablesModel(c))
-    // channelVariables.guildMembers = JSON.parse(fs.readFileSync('guildMembers.json'));
 });
-
-// var botAdmins = (channelID) => {
-//     return channelVariables[channelID].botAdmins || [];
-// }
-
-// var guildMembers = (channelID) => {
-//     return channelVariables[channelID].guildMembers || [];
-// }
-
-// var joinedMembers = (channelID) => {
-//     return channelVariables[channelID].joinedMembers || {};
-// }
 var authorizeUser = function(userId, channelID){
     if(bot.servers[bot.channels[channelID].guild_id].owner_id === userId){
         return true;
@@ -78,7 +69,14 @@ var authorizeUser = function(userId, channelID){
             result = true;
         }
     });
+    bot.sendMessage({
+        to: channelID,
+        message: 'Sorry, no Permission.'
+    });
     return result;
+}
+function saveFile() {
+    fs.writeFileSync('channelVariables.json', JSON.stringify(channels));
 }
 bot.on('message', function (user, userID, channelID, message, evt) {
     // Our bot needs to know if it will execute a command
@@ -88,7 +86,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
     }
     var channelVars = channels[channelID];
-
+    bot.deleteMessage(message);
     if (message.substring(0, 1) == '!') {
         var args = message.substring(1).split(' ');
         var cmd = args[0].toLowerCase();
@@ -99,13 +97,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
              break;
             case 'letsraid':
                 if(!authorizeUser(userID, channelID)){
-                    bot.sendMessage({
-                        to: channelID,
-                        message: 'Sorry, no Permission.'
-                    });
-                    break;
-                }
-                
+                    break;  
+                }                
                 channelVars.clearJoinedMembers();
                 bot.sendMessage({
                     to: channelID,
@@ -151,10 +144,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
             case 'clear': 
                 if(!authorizeUser(userID, channelID)){
-                    bot.sendMessage({
-                        to: channelID,
-                        message: 'Sorry, no Permission.'
-                    });
                     break;
                 }
                 channelVars.clearJoinedMembers();
@@ -162,6 +151,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     to: channelID,
                     message: 'Memberlist cleared!'
                 });
+                   
             break;
 
             case 'status':
@@ -191,10 +181,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
             case 'addadmin':
                 if(!authorizeUser(userID, channelID)){
-                    bot.sendMessage({
-                        to: channelID,
-                        message: 'Sorry, no Permission.'
-                    });
                     break;
                 }
                 if(args[1]){
@@ -205,8 +191,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                             to: channelID,
                             message: 'Added new Admin'
                         });
-                        fs.writeFileSync('channelVariables.json', JSON.stringify(channels));   
-
                     }else{
                         bot.sendMessage({
                             to: channelID,
@@ -247,10 +231,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             
             case 'removeadmin':   
             if(!authorizeUser(userID, channelID)){
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'Sorry, no Permission.'
-                });
                 break;
             }
                 if(!args[1]){
@@ -268,16 +248,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     to: channelID,
                     message: 'userID removed'
                 });
-                fs.writeFileSync('channelVariables.json', JSON.stringify(channels));   
             break;
 
             
             case 'removeguildmember':  
             if(!authorizeUser(userID, channelID)){
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'Sorry, no Permission.'
-                });
                 break;
             }
             if(!args[1]){
@@ -289,7 +264,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             }   var index = channelVars.guildMembers.indexOf(args[1]);  
             if (index !== -1) {
                 channelVars.guildMembers.splice(index, 1);
-                fs.writeFileSync('channelVariables.json', JSON.stringify(channels));   
                 bot.sendMessage({
                     to: channelID,
                     message: 'userID removed'
@@ -302,13 +276,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             });
             break;
 
-
             case 'addguildmember':    
             if(!authorizeUser(userID, channelID)){
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'Sorry, no Permission.'
-                });
                 break;
             }
             if(!args[1]){
@@ -320,7 +289,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             }         
             if(channelVars.guildMembers.indexOf(args[1]) === -1){
                 channelVars.guildMembers.push(args[1]);
-                fs.writeFileSync('channelVariables.json', JSON.stringify(channels));   
                 bot.sendMessage({
                     to: channelID,
                     message: 'guildmember added'
