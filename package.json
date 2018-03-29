@@ -16,6 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "discord.io": "github:woor/discord.io#gateway_v6",
+    "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "lodash": "^4.17.5",
     "winston": "^2.4.1"

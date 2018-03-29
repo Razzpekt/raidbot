@@ -2,6 +2,7 @@ var Discord = require('discord.io');
 var logger = require('winston');
 const _ = require('lodash')
 const fs = require('fs');
+require('dotenv').config();
 // Configure logger settings
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {
