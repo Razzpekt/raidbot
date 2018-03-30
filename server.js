@@ -235,7 +235,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     'status - display the current member list\n\n' +
                     'clear - clears the current member list (Admin permission)\n\n' +
                     'addadmin [userID] - add admin permission to userID (Admin permission)\n\n' +
-                    'removeadmin [userID] - removes userID from admin (Admin permission)\n\n' +
+                    'removeadmin [userID] - removes admin permission to userID (Admin permission)\n\n' +
                     'addguildmember [userID] - add userID to guildmember list. guildmembers get an addition in the status list (Admin permission)\n\n' +
                     'removeguildmember [userID] - remove userID from guildmember list (Admin permission)' +
                     'myuserid - display your userID\n\n\`\`\`' 
