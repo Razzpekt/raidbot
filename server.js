@@ -264,13 +264,18 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     if (index !== -1) {
                         channelVars.botAdmins.splice(index, 1);
                         saveFile()
-                    }
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'userID removed'
-                });
-            break;
+                        bot.sendMessage({
+                            to: channelID,
+                            message: 'userID removed'
+                        });
+                    }else{
+                        bot.sendMessage({
+                            to: channelID,
+                            message: 'userID not found'
+                        });
 
+                    }
+            break;
             
             case 'removeguildmember':  
             if(!authorizeUser(userID, channelID)){
