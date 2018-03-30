@@ -3,17 +3,25 @@ var logger = require('winston');
 const _ = require('lodash')
 const fs = require('fs');
 require('dotenv').config();
-var firebase = require('firebase/app');
+require('firebase/app');
 require('firebase/database');
+var admin = require("firebase-admin");
+var firebase = admin.initializeApp({
+  credential: admin.credential.cert({
+    "type": process.env.type,
+    "project_id": process.env.project_id,
+    "private_key_id": process.env.private_key_id,
+    "private_key": process.env.private_key,
+    "client_email": process.env.client_email,
+    "client_id": process.env.client_id,
+    "auth_uri": process.env.auth_uri,
+    "token_uri": process.env.token_uri,
+    "auth_provider_x509_cert_url": process.env.auth_provider_x509_cert_url,
+    "client_x509_cert_url": process.env.client_x509_cert_url
+  }),
+  databaseURL: process.env.database_url
+});
 
-firebase.initializeApp({
-    apiKey: process.env.firebaseApiKey,
-    authDomain: "raidbot-78625.firebaseapp.com",
-    databaseURL: "https://raidbot-78625.firebaseio.com",
-    projectId: "raidbot-78625",
-    storageBucket: "raidbot-78625.appspot.com",
-    messagingSenderId: "1071670894076"
-  });
 // Configure logger settings
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {
@@ -32,7 +40,7 @@ class channelVariablesModel  {
         this._botAdmins = []
         this._guildMembers= []
         this._joinedMembers= {}
-        Object.assign(this, channelJson)
+        {Object.assign(this, channelJson)}
     }
     get botAdmins(){
         return this._botAdmins;
@@ -64,9 +72,7 @@ class channelVariablesModel  {
 };
 
 bot.on('ready', function (evt) {
-    logger.info('Connected');
-    logger.info('Logged in as: ');
-    logger.info(bot.username + ' - (' + bot.id + ')');
+    logger.info('Connected as ' + bot.username + ' - (' + bot.id + ')');
     firebase.database().ref('raidbot').once('value').then(function(snapshot) {
         channels = _.mapValues(snapshot.val(), c => new channelVariablesModel(c))
         });
