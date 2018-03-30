@@ -229,16 +229,16 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             case 'info':                
                 bot.sendMessage({
                     to: channelID,
-                    message: 'letsraid - start your raid signup with a fresh list and a \'here\' mention in this channel (Admin permission)\n' +
-                    'join [preference] - signup to the current list with optional preference\n' +
-                    'leave - remove yourself from the member list\n' +
-                    'status - display the current member list\n' +
-                    'clear - clears the current member list (Admin permission)\n' +
-                    'addadmin [userID] - add admin permission to userID\n' +
-                    'removeadmin [userID] - removes userid from admin (Admin permission)\n' +
-                    'myuserid - display your userID\n' +
-                    'addguildmember [userID] - add userid to guildmember list. guildmembers get an addition in the status list (Admin permission)\n' +
-                    'removeguildmember [userID] - remove userid from guildmember list (Admin permission)\n'
+                    message: '\`\`\`Commands: \n\nletsraid - start your raid signup with a fresh list and a \'here\' mention in this channel (Admin permission)\n\n' +
+                    'join [preference] - signup to the current member list with optional preference\n\n' +
+                    'leave - remove yourself from the current member list\n\n' +
+                    'status - display the current member list\n\n' +
+                    'clear - clears the current member list (Admin permission)\n\n' +
+                    'addadmin [userID] - add admin permission to userID (Admin permission)\n\n' +
+                    'removeadmin [userID] - removes userID from admin (Admin permission)\n\n' +
+                    'addguildmember [userID] - add userID to guildmember list. guildmembers get an addition in the status list (Admin permission)\n\n' +
+                    'removeguildmember [userID] - remove userID from guildmember list (Admin permission)' +
+                    'myuserid - display your userID\n\n\`\`\`' 
                 });
             break;
 
