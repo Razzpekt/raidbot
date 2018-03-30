@@ -156,6 +156,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     break;
                 }
                 delete channelVars.joinedMembers[userID];
+                saveFile();
                 bot.sendMessage({
                     to: channelID,
                     message: 'I removed you from the list.'
