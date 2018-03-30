@@ -286,6 +286,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             if (index !== -1) {
                 channelVars.guildMembers.splice(index, 1);
                 saveFile()
+                if(typeof channelVars.joinedMembers[args[1]] !== 'undefined'){
+                    channelVars.joinedMembers[args[1]].guildmember = false;
+                }
                 bot.sendMessage({
                     to: channelID,
                     message: 'userID removed'
