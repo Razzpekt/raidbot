@@ -15,7 +15,7 @@
   "author": "Tim Weiskopf",
   "license": "MIT",
   "dependencies": {
-    "discord.io": "github:woor/discord.io#gateway_v6",
+    "discord.io": "github:Woor/discord.io#gateway_v6",
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "firebase": "^4.12.1",

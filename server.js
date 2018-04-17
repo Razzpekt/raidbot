@@ -6,22 +6,21 @@ require('dotenv').config();
 require('firebase/app');
 require('firebase/database');
 var admin = require("firebase-admin");
-var privateKey = '{"stupidworkaround": "'+ process.env.private_key +'"}';
-privateKey = '' + JSON.parse(privateKey).stupidworkaround + ''
+// var privateKey = `${process.env.private_key}`
 var firebase = admin.initializeApp({
-  credential: admin.credential.cert({
-    "type": process.env.type,
-    "project_id": process.env.project_id,
-    "private_key_id": process.env.private_key_id,
-    "private_key": privateKey,
-    "client_email": process.env.client_email,
-    "client_id": process.env.client_id,
-    "auth_uri": process.env.auth_uri,
-    "token_uri": process.env.token_uri,
-    "auth_provider_x509_cert_url": process.env.auth_provider_x509_cert_url,
-    "client_x509_cert_url": process.env.client_x509_cert_url
-  }),
-  databaseURL: process.env.database_url
+    credential: admin.credential.cert({
+        "type": process.env.type,
+        "project_id": process.env.project_id,
+        "private_key_id": process.env.private_key_id,
+        "private_key": process.env.private_key,
+        "client_email": process.env.client_email,
+        "client_id": process.env.client_id,
+        "auth_uri": process.env.auth_uri,
+        "token_uri": process.env.token_uri,
+        "auth_provider_x509_cert_url": process.env.auth_provider_x509_cert_url,
+        "client_x509_cert_url": process.env.client_x509_cert_url
+    }),
+    databaseURL: process.env.database_url
 });
 
 // Configure logger settings
@@ -32,40 +31,40 @@ logger.add(logger.transports.Console, {
 });
 // Initialize Discord Bot
 var bot = new Discord.Client({
-   token: process.env.token,
-   autorun: true
+    token: process.env.token,
+    autorun: true
 });
 var channels = {}
 
-class channelVariablesModel  {
-    constructor(channelJson){
+class channelVariablesModel {
+    constructor(channelJson) {
         this._botAdmins = []
-        this._guildMembers= []
-        this._joinedMembers= {}
-        {Object.assign(this, channelJson)}
+        this._guildMembers = []
+        this._joinedMembers = {}
+        { Object.assign(this, channelJson) }
     }
-    get botAdmins(){
+    get botAdmins() {
         return this._botAdmins;
     }
-    set botAdmins(value){
+    set botAdmins(value) {
         this._botAdmins.push(value);
         saveFile();
     }
-    get guildMembers(){
+    get guildMembers() {
         return this._guildMembers;
     }
-    set guildMembers(value){
+    set guildMembers(value) {
         this._guildMembers.push(value);
         saveFile();
     }
-    get joinedMembers(){
+    get joinedMembers() {
         return this._joinedMembers;
     }
-    setJoinedMembers(key, value){
+    setJoinedMembers(key, value) {
         this._joinedMembers[key] = value;
         saveFile();
     }
-    clearJoinedMembers(){
+    clearJoinedMembers() {
         for (const prop of Object.keys(this._joinedMembers)) {
             delete this._joinedMembers[prop];
         }
@@ -75,18 +74,18 @@ class channelVariablesModel  {
 
 bot.on('ready', function (evt) {
     logger.info('Connected as ' + bot.username + ' - (' + bot.id + ')');
-    firebase.database().ref('raidbot').once('value').then(function(snapshot) {
+    firebase.database().ref('raidbot').once('value').then(function (snapshot) {
         channels = _.mapValues(snapshot.val(), c => new channelVariablesModel(c))
-        });
-    
+    });
+
 });
-var authorizeUser = function(userId, channelID){
-    if(bot.servers[bot.channels[channelID].guild_id].owner_id === userId){
+var authorizeUser = function (userId, channelID) {
+    if (bot.servers[bot.channels[channelID].guild_id].owner_id === userId) {
         return true;
     }
     var result = false;
     channels[channelID].botAdmins.forEach(element => {
-        if(element == userId){
+        if (element == userId) {
             result = true;
         }
     });
@@ -102,7 +101,7 @@ function saveFile() {
 bot.on('message', function (user, userID, channelID, message, evt) {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
-    if(!channels[channelID]){
+    if (!channels[channelID]) {
         channels[channelID] = new channelVariablesModel()
 
     }
@@ -113,46 +112,46 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         bot.deleteMessage({
             channelID: channelID,
             messageID: evt.d.id
-        });        
-        switch(cmd) {
-            case'log':
-             console.log(channels);
-             break;
+        });
+        switch (cmd) {
+            case 'log':
+                console.log(channels);
+                break;
             case 'letsraid':
-                if(!authorizeUser(userID, channelID)){
-                    break;  
-                }                
+                if (!authorizeUser(userID, channelID)) {
+                    break;
+                }
                 channelVars.clearJoinedMembers();
                 bot.sendMessage({
                     to: channelID,
                     message: 'Alrighty! I cleared the member list.\n@here Everyone can signup now and set their preferred class by typing !join [preferences]'
                 });
-            break;
+                break;
 
-            case 'join': 
+            case 'join':
                 var prefs = args[1] || '';
                 var joinedAlready = !!channelVars.joinedMembers[userID];
-                channelVars.setJoinedMembers(userID, {name: user, prefs: prefs, guildmember: channelVars.guildMembers.indexOf(userID) !== -1});
-                if(joinedAlready){
+                channelVars.setJoinedMembers(userID, { name: user, prefs: prefs, guildmember: channelVars.guildMembers.indexOf(userID) !== -1 });
+                if (joinedAlready) {
                     bot.sendMessage({
                         to: channelID,
                         message: 'You are already on the list. I replaced your prefs though...'
-                    });   
+                    });
                     break;
-                }            
+                }
                 bot.sendMessage({
                     to: channelID,
-                    message: 'I added '+user+' to the member list!'
+                    message: 'I added ' + user + ' to the member list!'
                 });
-            break;
-            
+                break;
+
             case 'leave':
                 var joinedAlready = !!channelVars.joinedMembers[userID];
-                if(!joinedAlready){
+                if (!joinedAlready) {
                     bot.sendMessage({
                         to: channelID,
                         message: 'You were not even signed up...'
-                    });   
+                    });
                     break;
                 }
                 delete channelVars.joinedMembers[userID];
@@ -160,11 +159,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 bot.sendMessage({
                     to: channelID,
                     message: 'I removed you from the list.'
-                });   
-            break;
+                });
+                break;
 
-            case 'clear': 
-                if(!authorizeUser(userID, channelID)){
+            case 'clear':
+                if (!authorizeUser(userID, channelID)) {
                     break;
                 }
                 channelVars.clearJoinedMembers();
@@ -172,47 +171,47 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     to: channelID,
                     message: 'Memberlist cleared!'
                 });
-                   
-            break;
+
+                break;
 
             case 'status':
                 var message = 'Current member list:\n';
                 var count = 1;
-                var keysSorted = Object.keys(channelVars.joinedMembers).sort(function(a,b){return channelVars.joinedMembers[b].guildmember - channelVars.joinedMembers[a].guildmember})
+                var keysSorted = Object.keys(channelVars.joinedMembers).sort(function (a, b) { return channelVars.joinedMembers[b].guildmember - channelVars.joinedMembers[a].guildmember })
                 keysSorted.forEach(key => {
                     var element = channelVars.joinedMembers[key]
                     message += count + '. ' + element.name;
-                    if(element.prefs){
+                    if (element.prefs) {
                         message += ' - ' + element.prefs;
                     }
-                    if(element.guildmember){
+                    if (element.guildmember) {
                         message += ' (Guildmember!)'
                     }
                     message += '\n';
                     count++;
                 });
-                if(Object.keys(channelVars.joinedMembers).length === 0 && channelVars.joinedMembers.constructor === Object){
+                if (Object.keys(channelVars.joinedMembers).length === 0 && channelVars.joinedMembers.constructor === Object) {
                     message += 'No one signed up yet :('
                 }
                 bot.sendMessage({
                     to: channelID,
-                    message: '\`\`\`'+message+'\`\`\`'
+                    message: '\`\`\`' + message + '\`\`\`'
                 })
-            break;
+                break;
 
             case 'addadmin':
-                if(!authorizeUser(userID, channelID)){
+                if (!authorizeUser(userID, channelID)) {
                     break;
                 }
-                if(args[1]){
-                    var index = channelVars.botAdmins.indexOf(args[1]);  
+                if (args[1]) {
+                    var index = channelVars.botAdmins.indexOf(args[1]);
                     if (index === -1) {
                         channelVars.botAdmins = args[1]
                         bot.sendMessage({
                             to: channelID,
                             message: 'Added new Admin'
                         });
-                    }else{
+                    } else {
                         bot.sendMessage({
                             to: channelID,
                             message: 'UserId already in list'
@@ -224,136 +223,136 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     to: channelID,
                     message: 'No UserId set.'
                 });
-            break;
+                break;
             case 'help':
-            case 'info':                
+            case 'info':
                 bot.sendMessage({
                     to: channelID,
                     message: '\`\`\`Commands: \n\nletsraid - start your raid signup with a fresh list and a \'here\' mention in this channel (Admin permission)\n\n' +
-                    'join [preference] - signup to the current member list with optional preference\n\n' +
-                    'leave - remove yourself from the current member list\n\n' +
-                    'status - display the current member list\n\n' +
-                    'clear - clears the current member list (Admin permission)\n\n' +
-                    'addadmin [userID] - add admin permission to userID (Admin permission)\n\n' +
-                    'removeadmin [userID] - removes admin permission to userID (Admin permission)\n\n' +
-                    'addguildmember [userID] - add userID to guildmember list. guildmembers get an addition in the status list (Admin permission)\n\n' +
-                    'removeguildmember [userID] - remove userID from guildmember list (Admin permission)\n\n' +
-                    'myuserid - display your userID\`\`\`' 
+                        'join [preference] - signup to the current member list with optional preference\n\n' +
+                        'leave - remove yourself from the current member list\n\n' +
+                        'status - display the current member list\n\n' +
+                        'clear - clears the current member list (Admin permission)\n\n' +
+                        'addadmin [userID] - add admin permission to userID (Admin permission)\n\n' +
+                        'removeadmin [userID] - removes admin permission to userID (Admin permission)\n\n' +
+                        'addguildmember [userID] - add userID to guildmember list. guildmembers get an addition in the status list (Admin permission)\n\n' +
+                        'removeguildmember [userID] - remove userID from guildmember list (Admin permission)\n\n' +
+                        'myuserid - display your userID\`\`\`'
                 });
-            break;
+                break;
 
-            case 'myuserid':                
+            case 'myuserid':
                 bot.sendMessage({
                     to: channelID,
                     message: userID
                 });
-            break;
-
-            
-            case 'removeadmin':   
-            if(!authorizeUser(userID, channelID)){
                 break;
-            }
-                if(!args[1]){
+
+
+            case 'removeadmin':
+                if (!authorizeUser(userID, channelID)) {
+                    break;
+                }
+                if (!args[1]) {
                     bot.sendMessage({
                         to: channelID,
                         message: 'no userid'
                     });
                     break;
-                }   
-                var index = channelVars.botAdmins.indexOf(args[1]);  
-                    if (index !== -1) {
-                        channelVars.botAdmins.splice(index, 1);
-                        saveFile()
-                        bot.sendMessage({
-                            to: channelID,
-                            message: 'userID removed'
-                        });
-                    }else{
-                        bot.sendMessage({
-                            to: channelID,
-                            message: 'userID not found'
-                        });
+                }
+                var index = channelVars.botAdmins.indexOf(args[1]);
+                if (index !== -1) {
+                    channelVars.botAdmins.splice(index, 1);
+                    saveFile()
+                    bot.sendMessage({
+                        to: channelID,
+                        message: 'userID removed'
+                    });
+                } else {
+                    bot.sendMessage({
+                        to: channelID,
+                        message: 'userID not found'
+                    });
 
+                }
+                break;
+
+            case 'removeguildmember':
+                if (!authorizeUser(userID, channelID)) {
+                    break;
+                }
+                if (!args[1]) {
+                    bot.sendMessage({
+                        to: channelID,
+                        message: 'no userid'
+                    });
+                    break;
+                } var index = channelVars.guildMembers.indexOf(args[1]);
+                if (index !== -1) {
+                    channelVars.guildMembers.splice(index, 1);
+                    saveFile()
+                    if (typeof channelVars.joinedMembers[args[1]] !== 'undefined') {
+                        channelVars.joinedMembers[args[1]].guildmember = false;
                     }
-            break;
-            
-            case 'removeguildmember':  
-            if(!authorizeUser(userID, channelID)){
-                break;
-            }
-            if(!args[1]){
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'no userid'
-                });
-                break;
-            }   var index = channelVars.guildMembers.indexOf(args[1]);  
-            if (index !== -1) {
-                channelVars.guildMembers.splice(index, 1);
-                saveFile()
-                if(typeof channelVars.joinedMembers[args[1]] !== 'undefined'){
-                    channelVars.joinedMembers[args[1]].guildmember = false;
+                    bot.sendMessage({
+                        to: channelID,
+                        message: 'userID removed'
+                    });
+                    break;
                 }
                 bot.sendMessage({
                     to: channelID,
-                    message: 'userID removed'
+                    message: 'userID not found'
                 });
                 break;
-            }
-            bot.sendMessage({
-                to: channelID,
-                message: 'userID not found'
-            });
-            break;
 
-            case 'addguildmember':    
-            if(!authorizeUser(userID, channelID)){
-                break;
-            }
-            if(!args[1]){
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'no userid'
-                });
-                break;
-            }         
-            if(channelVars.guildMembers.indexOf(args[1]) === -1){
-                channelVars.guildMembers = args[1];
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'guildmember added'
-                });
-                if(typeof channelVars.joinedMembers[args[1]] !== 'undefined'){
-                    channelVars.joinedMembers[args[1]].guildmember = true;
+            case 'addguildmember':
+                if (!authorizeUser(userID, channelID)) {
+                    break;
                 }
-            }else{
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'already a guild member'
-                });
-            }
-            
-            break;
+                if (!args[1]) {
+                    bot.sendMessage({
+                        to: channelID,
+                        message: 'no userid'
+                    });
+                    break;
+                }
+                if (channelVars.guildMembers.indexOf(args[1]) === -1) {
+                    channelVars.guildMembers = args[1];
+                    bot.sendMessage({
+                        to: channelID,
+                        message: 'guildmember added'
+                    });
+                    if (typeof channelVars.joinedMembers[args[1]] !== 'undefined') {
+                        channelVars.joinedMembers[args[1]].guildmember = true;
+                    }
+                } else {
+                    bot.sendMessage({
+                        to: channelID,
+                        message: 'already a guild member'
+                    });
+                }
+
+                break;
 
             default:
                 bot.sendMessage({
                     to: channelID,
-                    message: 'I dont know the '+message+' command :('
+                    message: 'I dont know the ' + message + ' command :('
                 })
                 break;
-         }
-     }
+        }
+    }
 });
 
 const http = require('http');
 const express = require('express');
 const app = express();
 app.get("/", (request, response) => {
-  console.log(Date.now() + " Ping Received");
-  response.sendStatus(200);
+    console.log(Date.now() + " Ping Received");
+    response.sendStatus(200);
 });
 app.listen(process.env.PORT);
 setInterval(() => {
-  http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
+    http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
 }, 280000);
