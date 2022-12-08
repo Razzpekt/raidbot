@@ -17,7 +17,7 @@
   "dependencies": {
     "discord.io": "github:Woor/discord.io#gateway_v6",
     "dotenv": "^5.0.1",
-    "express": "^4.16.3",
+    "express": "^4.17.3",
     "firebase": "^4.12.1",
     "firebase-admin": "^5.11.0",
     "lodash": "^4.17.5",
